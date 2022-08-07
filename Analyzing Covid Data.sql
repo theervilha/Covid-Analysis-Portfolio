@@ -17,6 +17,8 @@ INTO
 FROM 
 	PortfolioProject..Worksheet$
 
+ALTER TABLE PortfolioProject..CovidDeaths$ ALTER COLUMN total_deaths float NULL
+
 SELECT TOP 100 * FROM PortfolioProject..CovidDeaths$ ORDER BY date DESC
 
 
@@ -29,6 +31,10 @@ INTO
 	PortfolioProject..CovidVaccinations$
 FROM 
 	PortfolioProject..Worksheet$
+	
+ALTER TABLE PortfolioProject..CovidVaccinations$ ALTER COLUMN total_vaccinations float NULL
+ALTER TABLE PortfolioProject..CovidVaccinations$ ALTER COLUMN people_vaccinated float NULL
+ALTER TABLE PortfolioProject..CovidVaccinations$ ALTER COLUMN new_vaccinations float NULL
 
 SELECT TOP 100 * FROM PortfolioProject..CovidVaccinations$ ORDER BY date DESC
 
@@ -104,6 +110,36 @@ GROUP BY
 	location, YEAR(date), MONTH(date)
 ORDER BY
 	location, YEAR(date), MONTH(date)
+
+
+
+/* Table containing: 
+- Number of Infected People
+- % Pct Infected by Population
+- Number of Deaths
+- % Pct Deaths by Infected
+- % Deaths by Population
+*/
+SELECT
+	SUM(population) as total_population,
+	SUM(total_infected) as total_infected,
+	SUM(total_infected)/SUM(population)*100 as pct_infected_by_population,
+	SUM(total_deaths) as total_deaths,
+	SUM(total_deaths)/SUM(total_infected)*100 as pct_deaths_by_infected,
+	SUM(total_deaths)/SUM(population)*100 as pct_deaths_by_population
+FROM 
+	(SELECT
+		location, 
+		MAX(total_cases) as total_infected,
+		MAX(total_deaths) as total_deaths, 
+		MAX(population) as population
+	FROM
+		PortfolioProject..CovidDeaths$
+	WHERE
+		continent IS NOT NULL -- get only countries
+	GROUP BY
+		location
+	) AS max_numbers 
 
 
 
