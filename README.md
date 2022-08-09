@@ -7,6 +7,7 @@ Os dados foram obtidos na aba de covid do site [Our World in Data](https://ourwo
 ### Habilidades utilizadas
 - Temp Tables
 - Windows Functions
+- Joins
 - Aggregate Functions 
 - Creating Views 
 - Converting Data Types
