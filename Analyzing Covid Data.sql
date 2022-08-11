@@ -4,6 +4,7 @@ SELECT
 FROM 
 	PortfolioProject..Worksheet$
 
+ALTER TABLE PortfolioProject..Worksheet$ ALTER COLUMN date date NULL
 
 
 -- Select the data we are going to use
@@ -195,6 +196,45 @@ FROM
 	) AS summarized_data_by_country 
 GROUP BY
 	location
+
+
+-- Query for summarized covid data BY COUNTRY BY Year-Month
+SELECT
+	location,
+	year_month,
+	SUM(population) as total_population,
+	ISNULL( SUM(total_infected), 0 ) as total_infected,
+	ISNULL( SUM(total_infected)/SUM(population)*100, 0 ) as pct_infected_by_population,
+	ISNULL( SUM(total_deaths), 0 ) as total_deaths,
+	ISNULL( SUM(total_deaths)/SUM(total_infected)*100, 0 ) as pct_deaths_by_infected,
+	ISNULL( SUM(total_deaths)/SUM(population)*100, 0 ) as pct_deaths_by_population,
+	ISNULL( SUM(total_vaccinations), 0 ) as total_vaccinations,
+	ISNULL( SUM(people_vaccinated), 0 ) as people_vaccinated,
+	ISNULL( SUM(people_vaccinated)/SUM(population)*100, 0 ) as pct_people_vaccinated
+FROM 
+	(
+	SELECT
+		deaths.location,
+		FORMAT(deaths.date,'yyyy/MM') AS year_month,
+		MAX(deaths.total_cases) as total_infected,
+		MAX(deaths.total_deaths) as total_deaths,
+		MAX(vacc.total_vaccinations) AS total_vaccinations,
+		MAX(vacc.people_vaccinated) AS people_vaccinated,
+		MAX(deaths.population) as population
+	FROM
+		PortfolioProject..CovidDeaths$ as deaths
+	INNER JOIN
+		PortfolioProject..CovidVaccinations$ as vacc
+		ON deaths.location = vacc.location AND deaths.date = vacc.date
+	WHERE
+		deaths.continent IS NOT NULL -- get only countries
+	GROUP BY
+		deaths.location, deaths.date
+	) AS summarized_data_by_country 
+GROUP BY
+	location, year_month
+ORDER BY
+	location, year_month
 
 
 -- Query for summarized covid data BY CONTINENT
