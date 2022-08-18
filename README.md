@@ -12,3 +12,7 @@ Os dados foram obtidos na aba de covid do site [Our World in Data](https://ourwo
 - Creating Views 
 - Converting Data Types
 - E outros conceitos de SQL
+
+<br>
+
+![Mostrando Dashboard](https://i.ibb.co/5kGqvcf/image.png)
