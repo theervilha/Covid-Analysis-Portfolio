@@ -1,10 +1,10 @@
 -- Visualize raw data
-SELECT  
-	location, date, total_vaccinations, people_vaccinated, new_vaccinations
+SELECT TOP 10 
+	*
 FROM 
-	PortfolioProject..Worksheet$
+	PortfolioProject..Sheet1$
 
-ALTER TABLE PortfolioProject..Worksheet$ ALTER COLUMN date date NULL
+ALTER TABLE PortfolioProject..Sheet1$ ALTER COLUMN date date NULL
 
 
 -- Select the data we are going to use
@@ -16,7 +16,7 @@ SELECT
 INTO
 	PortfolioProject..CovidDeaths$
 FROM 
-	PortfolioProject..Worksheet$
+	PortfolioProject..Sheet1$
 
 SELECT TOP 100 * FROM PortfolioProject..CovidDeaths$ ORDER BY date DESC
 
@@ -31,7 +31,7 @@ SELECT
 INTO
 	PortfolioProject..CovidVaccinations$
 FROM 
-	PortfolioProject..Worksheet$
+	PortfolioProject..Sheet1$
 
 SELECT TOP 100 * FROM PortfolioProject..CovidVaccinations$ ORDER BY date DESC
 
@@ -167,15 +167,15 @@ FROM
 -- Query for summarized covid data BY COUNTRY
 SELECT
 	location,
-	SUM(population) as total_population,
-	SUM(total_infected) as total_infected,
-	SUM(total_infected)/SUM(population)*100 as pct_infected_by_population,
-	SUM(total_deaths) as total_deaths,
-	SUM(total_deaths)/SUM(total_infected)*100 as pct_deaths_by_infected,
-	SUM(total_deaths)/SUM(population)*100 as pct_deaths_by_population,
-	SUM(total_vaccinations) as total_vaccinations,
-	SUM(people_vaccinated) as people_vaccinated,
-	SUM(people_vaccinated)/SUM(population)*100 as pct_people_vaccinated
+	ISNULL( SUM(population), 0) as total_population,
+	ISNULL( SUM(total_infected), 0) as total_infected,
+	ISNULL( SUM(total_infected)/SUM(population)*100, 0) as pct_infected_by_population,
+	ISNULL( SUM(total_deaths), 0) as total_deaths,
+	ISNULL( SUM(total_deaths)/SUM(total_infected)*100, 0) as pct_deaths_by_infected,
+	ISNULL( SUM(total_deaths)/SUM(population)*100, 0) as pct_deaths_by_population,
+	ISNULL( SUM(total_vaccinations), 0) as total_vaccinations,
+	ISNULL( SUM(people_vaccinated), 0) as people_vaccinated,
+	ISNULL( SUM(people_vaccinated)/SUM(population)*100, 0) as pct_people_vaccinated
 FROM 
 	(
 	SELECT
@@ -203,11 +203,14 @@ GROUP BY
 SELECT
 	deaths.location,
 	FORMAT(deaths.date,'yyyy/MM') AS year_month,
-	SUM(deaths.new_cases) as infected_per_month,
-	SUM(deaths.new_deaths) as deaths_per_month,
-	MAX(deaths.total_cases)/MAX(deaths.population)*100 as pct_population_infected,
-	MAX(deaths.total_deaths)/MAX(deaths.total_cases)*100 as pct_deaths_by_infected,
-	MAX(vacc.people_vaccinated)/MAX(deaths.population)*100 AS pct_people_vaccinated
+	ISNULL( SUM(deaths.new_cases), 0) as infected_per_month,
+	ISNULL( SUM(deaths.new_deaths), 0) as deaths_per_month,
+	ISNULL( SUM(deaths.new_cases)/MAX(deaths.population)*100, 0) as pct_population_infected,
+	CASE SUM(deaths.new_cases)
+		WHEN 0 THEN ISNULL( SUM(deaths.new_deaths)/1, 0) * 100
+		ELSE ISNULL( SUM(deaths.new_deaths)/SUM(deaths.new_cases)*100, 0)
+	END as pct_deaths_by_infected_monthly,
+	ISNULL( MAX(vacc.people_vaccinated)/MAX(deaths.population)*100, 0) AS pct_people_vaccinated
 FROM
 	PortfolioProject..CovidDeaths$ as deaths
 INNER JOIN
@@ -223,14 +226,14 @@ GROUP BY
 SELECT
 	location,
 	SUM(population) as total_population,
-	SUM(total_infected) as total_infected,
-	SUM(total_infected)/SUM(population)*100 as pct_infected_by_population,
-	SUM(total_deaths) as total_deaths,
-	SUM(total_deaths)/SUM(total_infected)*100 as pct_deaths_by_infected,
-	SUM(total_deaths)/SUM(population)*100 as pct_deaths_by_population,
-	SUM(total_vaccinations) as total_vaccinations,
-	SUM(people_vaccinated) as people_vaccinated,
-	SUM(people_vaccinated)/SUM(population)*100 as pct_people_vaccinated
+	ISNULL( SUM(total_infected), 0 ) as total_infected,
+	ISNULL( SUM(total_infected)/SUM(population)*100, 0 ) as pct_infected_by_population,
+	ISNULL( SUM(total_deaths), 0 ) as total_deaths,
+	ISNULL( SUM(total_deaths)/SUM(total_infected)*100, 0 ) as pct_deaths_by_infected,
+	ISNULL( SUM(total_deaths)/SUM(population)*100, 0 ) as pct_deaths_by_population,
+	ISNULL( SUM(total_vaccinations), 0 ) as total_vaccinations,
+	ISNULL( SUM(people_vaccinated), 0 ) as people_vaccinated,
+	ISNULL( SUM(people_vaccinated)/SUM(population)*100, 0 ) as pct_people_vaccinated
 FROM 
 	(
 	SELECT
@@ -252,29 +255,6 @@ FROM
 	) AS summarized_data_by_country 
 GROUP BY
 	location
-
-
--- Query for summarized covid data with date
-SELECT
-	deaths.location, 
-	deaths.date,
-	deaths.population,
-	ISNULL(deaths.total_cases, 0) as total_infected,
-	ISNULL(deaths.total_cases/deaths.population*100, 0) as pct_infected_by_population,
-	ISNULL(deaths.total_deaths, 0) as total_deaths,
-	ISNULL(deaths.total_deaths/deaths.total_cases*100, 0) as pct_deaths_by_infected,
-	ISNULL(vacc.total_vaccinations, 0) as total_deaths,
-	ISNULL(vacc.people_vaccinated, 0) as total_deaths,
-	ISNULL(vacc.people_vaccinated/deaths.population*100, 0) as pct_people_vaccinated
-FROM
-	PortfolioProject..CovidDeaths$ as deaths
-INNER JOIN
-	PortfolioProject..CovidVaccinations$ as vacc
-	ON deaths.location = vacc.location AND deaths.date = vacc.date
-WHERE
-	deaths.continent IS NOT NULL -- get only countries
-ORDER BY
-	deaths.location, deaths.date
 
 
 
