@@ -15,4 +15,4 @@ Os dados foram obtidos na aba de covid do site [Our World in Data](https://ourwo
 
 <br>
 
-![Mostrando Dashboard](https://i.ibb.co/5kGqvcf/image.png)
+![Mostrando Dashboard](https://i.ibb.co/9thXKXK/image.png)
