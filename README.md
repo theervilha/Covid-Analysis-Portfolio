@@ -1,5 +1,5 @@
 # Análise Covid Portfólio
-Processando dados do covid em SQL. [Clique aqui para acessar o Dashboard](https://public.tableau.com/shared/NHRG4NSPY?:display_count=n&:origin=viz_share_link) em Tableau.
+Processando dados do covid em SQL. [Clique aqui para acessar o Dashboard](https://public.tableau.com/views/CovidDashboard_16607256906210/CovidMap?:language=pt-BR&:display_count=n&:origin=viz_share_link) em Tableau.
 
 ### Os dados
 Os dados foram obtidos na aba de covid do site [Our World in Data](https://ourworldindata.org/explorers/coronavirus-data-explorer)
